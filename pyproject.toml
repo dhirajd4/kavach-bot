@@ -1,0 +1,71 @@
+[project]
+name = "kavach-bot"
+version = "0.1.0"
+description = "Kavach P0: WhatsApp 'Bhej ke check karo' scam-check bot"
+requires-python = ">=3.12"
+# Exact pins only (supply-chain hygiene). Bump deliberately.
+dependencies = [
+    "fastapi==0.143.1",
+    "uvicorn[standard]==0.54.0",
+    "pydantic==2.14.1",
+    "pydantic-settings==2.16.0",
+    "httpx==0.28.1",
+    "redis[hiredis]==8.1.0",
+    "SQLAlchemy[asyncio]==2.1.4",
+    "asyncpg==0.32.0",
+    "alembic==1.20.0",
+    "tldextract==5.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+    "pytest-asyncio==1.4.0",
+    "fakeredis==2.40.0",
+    "respx==0.23.1",
+    "ruff==0.17.0",
+    "mypy==2.4.0",
+]
+
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+kavach = ["data/*.txt", "api/*.html"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = ["integration: needs Postgres/Redis from docker compose"]
+addopts = "-m 'not integration'"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "S", "ASYNC"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106"]
+# User-facing copy and corpus sentences read better unwrapped.
+"src/kavach/verdict/templates.py" = ["E501"]
+"tests/fixtures/*" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+packages = ["kavach"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["tldextract.*"]
+ignore_missing_imports = true

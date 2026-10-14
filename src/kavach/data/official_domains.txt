@@ -1,0 +1,67 @@
+# Registrable domains of official Indian banks, payment apps, govt-adjacent services and big
+# platforms. Keep it to the registrable domain (no subdomains). Review every addition.
+# Banks
+sbi.co.in
+onlinesbi.sbi
+sbicard.com
+hdfcbank.com
+hdfc.com
+icicibank.com
+axisbank.com
+kotak.com
+kotakbank.com
+pnbindia.in
+bankofbaroda.in
+bankofbaroda.com
+canarabank.com
+unionbankofindia.co.in
+idfcfirstbank.com
+yesbank.in
+indusind.com
+federalbank.co.in
+bankofindia.co.in
+centralbankofindia.co.in
+indianbank.in
+iob.in
+ucobank.com
+aubank.in
+rblbank.com
+idbibank.in
+# Regulators / payments infra
+rbi.org.in
+npci.org.in
+bhimupi.org.in
+sebi.gov.in
+# Payment apps / wallets
+paytm.com
+phonepe.com
+mobikwik.com
+amazonpay.in
+cred.club
+# Government services on non-.gov.in domains
+irctc.co.in
+indiapost.gov.in
+epfindia.gov.in
+digilocker.gov.in
+# Telecom
+jio.com
+airtel.in
+myvi.in
+bsnl.co.in
+# Large platforms
+google.com
+youtube.com
+whatsapp.com
+facebook.com
+instagram.com
+amazon.in
+amazon.com
+flipkart.com
+meesho.com
+myntra.com
+swiggy.com
+zomato.com
+microsoft.com
+apple.com
+linkedin.com
+naukri.com

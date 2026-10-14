@@ -1,0 +1,79 @@
+name: kavach
+
+x-app: &app
+  build: .
+  env_file: .env
+  environment:
+    DATABASE_URL: postgresql+asyncpg://kavach:kavach@postgres:5432/kavach
+    REDIS_URL: redis://redis:6379/0
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16.4-alpine
+    environment:
+      POSTGRES_USER: kavach
+      POSTGRES_PASSWORD: kavach
+      POSTGRES_DB: kavach
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kavach"]
+      interval: 3s
+      retries: 20
+
+  redis:
+    image: redis:7.4.2-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      retries: 20
+
+  migrate:
+    <<: *app
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  api:
+    <<: *app
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  worker:
+    <<: *app
+    command: ["python", "-m", "kavach.workers.runner"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  # Stable public URL (needs CLOUDFLARE_TUNNEL_TOKEN):  docker compose --profile tunnel up
+  tunnel:
+    image: cloudflare/cloudflared:2025.4.0
+    profiles: ["tunnel"]
+    command: ["tunnel", "--no-autoupdate", "run", "--token", "${CLOUDFLARE_TUNNEL_TOKEN}"]
+    depends_on: [api]
+    restart: unless-stopped
+
+  # No account needed; random *.trycloudflare.com URL printed in logs, changes every restart:
+  #   docker compose --profile quicktunnel up
+  quicktunnel:
+    image: cloudflare/cloudflared:2025.4.0
+    profiles: ["quicktunnel"]
+    command: ["tunnel", "--no-autoupdate", "--url", "http://api:8000"]
+    depends_on: [api]
+
+volumes:
+  pgdata:
+  redisdata:

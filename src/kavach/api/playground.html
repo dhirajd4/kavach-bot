@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kavach Playground</title>
+<style>
+:root{
+  --bg:#efeae2; --panel:#ffffff; --ink:#111b21; --muted:#667781; --line:#e2ddd5;
+  --header:#008069; --header-ink:#ffffff; --me:#d9fdd3; --bot:#ffffff; --chip:#ffffff;
+  --scam:#d93025; --susp:#e37400; --safe:#188038; --info:#1a73e8; --code:#f1f3f4;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b141a; --panel:#111b21; --ink:#e9edef; --muted:#8696a0; --line:#222d34;
+    --header:#202c33; --header-ink:#e9edef; --me:#005c4b; --bot:#202c33; --chip:#202c33;
+    --scam:#f28b82; --susp:#fdd663; --safe:#81c995; --info:#8ab4f8; --code:#1f2c34;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--panel);color:var(--ink)}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 340px;height:100vh}
+@media (max-width:860px){.app{grid-template-columns:1fr;height:auto}.debug{border-left:0;border-top:1px solid var(--line)}}
+.chat{display:flex;flex-direction:column;min-height:100vh;background:var(--bg)}
+header{background:var(--header);color:var(--header-ink);padding:10px 16px;display:flex;align-items:center;gap:12px}
+header .av{width:38px;height:38px;border-radius:50%;background:#25d366;display:grid;place-items:center;font-size:20px}
+header .t b{display:block} header .t span{font-size:12px;opacity:.85}
+header .actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+header button{background:transparent;color:var(--header-ink);border:1px solid rgba(255,255,255,.4);border-radius:14px;padding:4px 10px;cursor:pointer;font-size:12px}
+.msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
+.b{max-width:min(560px,85%);padding:8px 10px 6px;border-radius:8px;white-space:pre-wrap;word-wrap:break-word;box-shadow:0 1px .5px rgba(0,0,0,.13)}
+.b.me{align-self:flex-end;background:var(--me)} .b.bot{align-self:flex-start;background:var(--bot)}
+.b .meta{display:block;text-align:right;font-size:11px;color:var(--muted);margin-top:2px}
+.speak{display:inline-flex;align-items:center;gap:4px;margin-top:6px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:14px;padding:3px 10px;font-size:12px;cursor:pointer}
+.speak.on{background:#00a884;color:#fff;border-color:#00a884}
+header button.voice-on{background:#25d366;border-color:#25d366;color:#0b141a;font-weight:600}
+.typing{align-self:flex-start;background:var(--bot);border-radius:8px;padding:8px 12px;color:var(--muted);font-style:italic}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:8px 12px 0}
+.chips button{flex:none;background:var(--chip);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:6px 10px;cursor:pointer;font-size:13px}
+form{display:flex;gap:8px;padding:10px 12px;background:var(--panel)}
+textarea{flex:1;resize:none;border:1px solid var(--line);border-radius:20px;padding:10px 14px;font:inherit;background:var(--panel);color:var(--ink);height:44px}
+form button{width:44px;height:44px;border-radius:50%;border:0;background:#00a884;color:#fff;font-size:18px;cursor:pointer}
+.debug{border-left:1px solid var(--line);padding:16px;overflow-y:auto;background:var(--panel)}
+.debug h2{font-size:14px;margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.verdict{font-size:20px;font-weight:700;margin:8px 0}
+.v-scam{color:var(--scam)} .v-suspicious{color:var(--susp)} .v-looks_safe{color:var(--safe)} .v-no_risk_found,.v-nothing_to_check{color:var(--info)}
+.meter{height:8px;background:var(--code);border-radius:4px;position:relative;margin:6px 0 2px}
+.meter i{position:absolute;inset:0 auto 0 0;border-radius:4px;background:var(--susp)}
+.meter .t3,.meter .t7{position:absolute;top:-3px;width:2px;height:14px;background:var(--muted)}
+.scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+td{padding:5px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+code{background:var(--code);padding:1px 4px;border-radius:4px;font-size:12px}
+.note{font-size:12px;color:var(--muted);margin-top:16px}
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="chat">
+    <header>
+      <div class="av">🛡️</div>
+      <div class="t"><b>Kavach</b><span>Playground · dry run, nothing goes to WhatsApp</span></div>
+      <div class="actions">
+        <button type="button" data-cmd="Hindi">हिंदी</button>
+        <button type="button" data-cmd="Hinglish">Hinglish</button>
+        <button type="button" data-cmd="English">English</button>
+        <button type="button" id="voiceBtn" title="Read every reply aloud">🔊 Voice: off</button>
+        <button type="button" id="newUser" title="Start as a brand-new user">New user</button>
+      </div>
+    </header>
+    <div class="msgs" id="msgs" aria-live="polite"></div>
+    <div class="chips" id="chips"></div>
+    <form id="f">
+      <textarea id="t" placeholder="Paste or type a suspicious message or link…" aria-label="Message"></textarea>
+      <button aria-label="Send">➤</button>
+    </form>
+  </section>
+  <aside class="debug">
+    <h2>Why this verdict</h2>
+    <div id="dbg"><p class="note">Send a message to see the score, reasons and evidence the rules used.</p></div>
+    <p class="note">Score bands: <b>&lt;3</b> no risk found · <b>3–7</b> ⚠️ suspicious · <b>≥7</b> or a list hit 🚨 scam.
+      Rules decide the verdict; the reply only explains it.</p>
+    <h2 style="margin-top:20px">Voice</h2>
+    <p class="note" id="voiceInfo">Replies can be read aloud with your computer's own voices (offline). Hindi replies use a Hindi voice;
+      Hinglish and English use an Indian-English voice. This previews the voice-note reply planned for the real bot.</p>
+  </aside>
+</div>
+<script>
+const SAMPLES = [
+  "Main CBI officer bol raha hoon, aap digital arrest mein hain. Video call par rahiye.",
+  "Dear customer your SBI account will be blocked today. Update KYC: http://sbi-kyc-update.xyz/login",
+  "KBC lucky draw mein 25 lakh jeete hain, registration fee Rs 12500 pay karein",
+  "Wedding card dekhiye: shaadi-card.apk download karein",
+  "OTP share karein, refund process ho jayega",
+  "https://www.hdfcbank.com/personal",
+  "Kal shaam mandir chalenge, mummy ko bhi le aana",
+];
+const $ = (id) => document.getElementById(id);
+let sender = localSender();
+
+function localSender(fresh) {
+  let s = null;
+  try { s = fresh ? null : localStorage.getItem("kavach.sender"); } catch (e) {}
+  if (!s) s = "91" + String(Math.floor(1e9 + Math.random() * 9e9));
+  try { localStorage.setItem("kavach.sender", s); } catch (e) {}
+  return s;
+}
+function fmt(text) {
+  const esc = text.replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+  return esc.replace(/\*([^*\n]+)\*/g, "<b>$1</b>");
+}
+function bubble(text, who, meta) {
+  const el = document.createElement("div");
+  el.className = "b " + who;
+  el.innerHTML = fmt(text) + (meta ? `<span class="meta">${meta}</span>` : "");
+  if (who === "bot" && speechOK) {
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "speak"; btn.textContent = "▶ Suniye";
+    btn.addEventListener("click", () => speak(text, btn));
+    el.appendChild(btn);
+    el._speakBtn = btn;
+  }
+  $("msgs").appendChild(el);
+  $("msgs").scrollTop = $("msgs").scrollHeight;
+  return el;
+}
+function now() { return new Date().toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"}); }
+
+function renderDebug(d, ms) {
+  const pct = Math.min(100, (d.score / 12) * 100);
+  const rows = d.reasons.map((r) =>
+    `<tr><td><code>${r.code}</code>${r.decisive ? " ⛔" : ""}</td><td>+${r.weight}</td><td>${fmt(r.evidence || "")}</td></tr>`
+  ).join("");
+  $("dbg").innerHTML = `
+    <div class="verdict v-${d.verdict}">${d.verdict.replace(/_/g, " ").toUpperCase()}</div>
+    <div>score <b>${d.score}</b> · reply in <b>${ms} ms</b></div>
+    <div class="meter"><i style="width:${pct}%"></i><span class="t3" style="left:25%"></span><span class="t7" style="left:58%"></span></div>
+    <div class="scale"><span>0</span><span>3</span><span>7</span><span>12+</span></div>
+    ${rows ? `<table>${rows}</table>` : `<p class="note">No risky signals found.</p>`}
+    ${d.domains.length ? `<p class="note">Domains: ${d.domains.map((x) => `<code>${x}</code>`).join(" ")}</p>` : ""}
+    <p class="note">All reason codes: ${d.all_codes.map((c) => `<code>${c}</code>`).join(" ") || "none"}</p>`;
+}
+
+async function send(text) {
+  bubble(text, "me", now() + " ✓✓");
+  const typing = document.createElement("div");
+  typing.className = "typing"; typing.textContent = "Kavach is checking…";
+  $("msgs").appendChild(typing);
+  try {
+    const res = await fetch("/dev/simulate", {
+      method: "POST", headers: {"content-type": "application/json"},
+      body: JSON.stringify({text, sender}),
+    });
+    typing.remove();
+    if (!res.ok) { bubble("⚠️ Error " + res.status + " (is the worker running?)", "bot", now()); return; }
+    const data = await res.json();
+    const el = bubble(data.reply || "(no reply: rate-limited or duplicate)", "bot", now());
+    if (voiceOn && data.reply) speak(data.reply, el._speakBtn);
+    renderDebug(data.debug, data.ms);
+  } catch (e) {
+    typing.remove();
+    bubble("⚠️ Can't reach the bot. Run: make up", "bot", now());
+  }
+}
+
+// ---------- Voice (Web Speech API: uses the OS's local voices, nothing leaves the machine)
+const speechOK = "speechSynthesis" in window;
+let voiceOn = false;
+try { voiceOn = localStorage.getItem("kavach.voice") === "1"; } catch (e) {}
+let voices = [];
+function loadVoices() { voices = speechOK ? speechSynthesis.getVoices() : []; showVoiceInfo(); }
+if (speechOK) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+
+function pickVoice(lang) {
+  const by = (pred) => voices.find(pred);
+  if (lang === "hi") {
+    return by((v) => v.lang.replace("_", "-").toLowerCase() === "hi-in") || by((v) => v.lang.startsWith("hi"));
+  }
+  return by((v) => v.lang.replace("_", "-").toLowerCase() === "en-in")
+      || by((v) => v.lang.startsWith("en-GB")) || by((v) => v.lang.startsWith("en"));
+}
+function showVoiceInfo() {
+  if (!speechOK) { $("voiceInfo").textContent = "This browser can't speak (no Web Speech API)."; return; }
+  const hi = pickVoice("hi"), en = pickVoice("en");
+  const extra = `Voices found: Hindi → ${hi ? hi.name : "none (install a Hindi voice in System Settings → Accessibility → Spoken Content)"}, ` +
+                `Hinglish/English → ${en ? en.name : "none"}.`;
+  $("voiceInfo").dataset.extra = extra;
+  $("voiceInfo").innerHTML = $("voiceInfo").innerHTML.split("<br>")[0] + "<br><br>" + extra;
+}
+
+// Turn the WhatsApp text into something pleasant to hear.
+function toSpeech(text) {
+  let t = text.includes("━━━") ? text.split("━━━━━━━━━━").pop() : text;  // skip the welcome block
+  t = t.split("\n").filter((l) => !/^\s*—\s*(Kavach|कवच)/.test(l)).join("\n"); // footer
+  t = t.replace(/https?:\/\/\S+/g, " link ")
+       .replace(/\*/g, "")
+       .replace(/\b1930\b/g, "1 9 3 0")
+       .replace(/\bOTP\b/g, "O T P").replace(/\bPIN\b/g, "pin").replace(/\bKYC\b/g, "K Y C")
+       .replace(/\bUPI\b/g, "U P I").replace(/\bCBI\b/g, "C B I").replace(/\bAPK\b/g, "A P K")
+       .replace(/cybercrime\.gov\.in/g, "cybercrime dot gov dot in")
+       .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, "")
+       .replace(/[•👉→]/g, "")
+       .replace(/\n+/g, ". ")
+       .replace(/\s*\.\s*(\.\s*)+/g, ". ")
+       .replace(/\s{2,}/g, " ")
+       .replace(/([!?।])\s*\./g, "$1")
+       .replace(/^[.\s]+/, "");
+  return t.trim();
+}
+function langOf(text) {
+  const deva = (text.match(/[ऀ-ॿ]/g) || []).length;
+  const latin = (text.match(/[A-Za-z]/g) || []).length;
+  return deva > latin * 0.5 ? "hi" : "en";
+}
+let speakingBtn = null;
+function speak(text, btn) {
+  if (!speechOK) return;
+  if (speechSynthesis.speaking) {
+    speechSynthesis.cancel();
+    const wasSame = speakingBtn === btn;
+    resetBtn();
+    if (wasSame) return; // second tap = stop
+  }
+  const u = new SpeechSynthesisUtterance(toSpeech(text));
+  const lang = langOf(text);
+  const v = pickVoice(lang);
+  if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = lang === "hi" ? "hi-IN" : "en-IN"; }
+  u.rate = 0.92;  // a little slower: written for elders
+  u.onend = u.onerror = resetBtn;
+  speakingBtn = btn || null;
+  if (btn) { btn.classList.add("on"); btn.textContent = "■ Rokiye"; }
+  speechSynthesis.speak(u);
+}
+function resetBtn() {
+  if (speakingBtn) { speakingBtn.classList.remove("on"); speakingBtn.textContent = "▶ Suniye"; }
+  speakingBtn = null;
+}
+function renderVoiceBtn() {
+  $("voiceBtn").textContent = voiceOn ? "🔊 Voice: on" : "🔈 Voice: off";
+  $("voiceBtn").classList.toggle("voice-on", voiceOn);
+  $("voiceBtn").hidden = !speechOK;
+}
+$("voiceBtn").addEventListener("click", () => {
+  voiceOn = !voiceOn;
+  try { localStorage.setItem("kavach.voice", voiceOn ? "1" : "0"); } catch (e) {}
+  if (!voiceOn && speechOK) { speechSynthesis.cancel(); resetBtn(); }
+  renderVoiceBtn();
+});
+renderVoiceBtn();
+
+$("f").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = $("t").value.trim();
+  if (text) { $("t").value = ""; send(text); }
+});
+$("t").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("f").requestSubmit(); }
+});
+document.querySelectorAll("[data-cmd]").forEach((b) => b.addEventListener("click", () => send(b.dataset.cmd)));
+$("newUser").addEventListener("click", () => {
+  sender = localSender(true);
+  $("msgs").innerHTML = "";
+  bubble("New user started. Your first reply will include the welcome message.", "bot", now());
+});
+SAMPLES.forEach((s) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.textContent = s.length > 38 ? s.slice(0, 36) + "…" : s; b.title = s;
+  b.addEventListener("click", () => send(s));
+  $("chips").appendChild(b);
+});
+</script>
+</body>
+</html>
