@@ -5,6 +5,8 @@ from dataclasses import asdict, dataclass
 
 from redis.asyncio import Redis
 
+from kavach.rules_version import rules_version
+
 
 @dataclass(frozen=True, slots=True)
 class CachedReply:
@@ -17,7 +19,7 @@ class CachedReply:
 
 
 def _key(input_hash: str, language: str) -> str:
-    return f"cache:reply:{input_hash}:{language}"
+    return f"cache:reply:{rules_version()}:{input_hash}:{language}"
 
 
 async def get(redis: Redis, input_hash: str, language: str) -> CachedReply | None:

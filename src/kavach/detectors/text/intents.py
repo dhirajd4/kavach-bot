@@ -176,6 +176,12 @@ _INTENTS: tuple[_Intent, ...] = (
             r"tax\s*refund",
             r"(bill|connection)\s*(will\s*be\s*)?(disconnect|cut|kat)\w*",
             r"recharge\s*(failed|pending)",
+            # "I sent extra by mistake, please return it" (fake payment screenshot scam)
+            r"(sent|bhej\w*|transfer\w*)\s*(extra|zyada|jyada|galti\s*se)",
+            r"(galti\s*se|by\s*mistake|accidentally)\W+(?:\w+\W+){0,4}?(bhej|sent|transfer|credit)\w*",
+            r"\d[\d,]*\s*(rs\.?|₹|rupees?)?\s*(extra|zyada|jyada|excess)",
+            r"return\s*the\s*(extra|excess|balance)\s*(amount|money)?",
+            r"(wapas|vapas|return|refund)\s*(kar|bhej)\s*(do|dijiye|de|dena)",
         ),
         ("रिफंड", "कनेक्शन कट"),
     ),

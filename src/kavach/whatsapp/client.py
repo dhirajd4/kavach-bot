@@ -11,6 +11,7 @@ from kavach.config import Settings
 log = logging.getLogger(__name__)
 
 MAX_BODY = 4096  # WhatsApp text body limit
+MAX_CAPTION = 1024  # WhatsApp media caption limit
 
 
 class WhatsAppError(RuntimeError):
@@ -21,6 +22,12 @@ class Messenger(Protocol):
     async def send_text(self, to: str, body: str, reply_to: str | None = None) -> None: ...
 
     async def mark_read(self, message_id: str, typing: bool = True) -> None: ...
+
+    async def send_image(
+        self, to: str, image: bytes, caption: str, reply_to: str | None = None
+    ) -> None: ...
+
+    async def download_media(self, media_id: str, max_bytes: int) -> bytes: ...
 
 
 class DryRunMessenger:
@@ -35,6 +42,24 @@ class DryRunMessenger:
 
     async def mark_read(self, message_id: str, typing: bool = True) -> None:
         return None
+
+    async def send_image(
+        self, to: str, image: bytes, caption: str, reply_to: str | None = None
+    ) -> None:
+        async with self._redis.pipeline(transaction=True) as pipe:
+            pipe.set(f"dryrun:reply:{reply_to}", caption, ex=600)
+            pipe.set(f"dryrun:image:{reply_to}", image, ex=600)
+            await pipe.execute()
+        log.info("dry-run image reply stored", extra={"reply_to": reply_to})
+
+    async def download_media(self, media_id: str, max_bytes: int) -> bytes:
+        """The playground parks uploads under dryrun:media:<id> (10 min TTL)."""
+        data = await self._redis.get(f"dryrun:media:{media_id}")
+        if data is None:
+            raise WhatsAppError("media not found (expired?)")
+        if len(data) > max_bytes:
+            raise WhatsAppError("media too large")
+        return data if isinstance(data, bytes) else data.encode()
 
 
 class WhatsAppClient:
@@ -62,6 +87,33 @@ class WhatsAppClient:
             "to": to,
             "type": "text",
             "text": {"body": body[:MAX_BODY], "preview_url": False},
+        }
+        if reply_to:
+            payload["context"] = {"message_id": reply_to}
+        await self._post(payload)
+
+    async def send_image(
+        self, to: str, image: bytes, caption: str, reply_to: str | None = None
+    ) -> None:
+        """Upload (not billed) then send ONE image message with the verdict as its caption."""
+        upload_url = (
+            f"{self._s.graph_api_base}/{self._s.graph_api_version}/"
+            f"{self._s.whatsapp_phone_number_id}/media"
+        )
+        resp = await self._http.post(
+            upload_url,
+            headers=self._headers(),
+            data={"messaging_product": "whatsapp", "type": "image/jpeg"},
+            files={"file": ("kavach-evidence.jpg", image, "image/jpeg")},
+        )
+        if resp.status_code >= 400:
+            raise WhatsAppError(f"media upload {resp.status_code}: {resp.text[:300]}")
+        payload: dict[str, Any] = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": to,
+            "type": "image",
+            "image": {"id": resp.json()["id"], "caption": caption[:MAX_CAPTION]},
         }
         if reply_to:
             payload["context"] = {"message_id": reply_to}

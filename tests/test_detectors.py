@@ -107,3 +107,14 @@ def test_apk_filename_in_text() -> None:
         "Wedding card dekhiye: shaadi-card.apk download karein"
     )
     assert Reason.REMOTE_ACCESS_APP in reasons("yeh apk install karo")
+
+
+def test_excess_payment_return_scam() -> None:
+    findings = detect_intents(
+        "Bhai maine galti se 5000 zyada bhej diye aapke account mein. Please return kar do"
+    )
+    refund = [f for f in findings if f.reason is Reason.REFUND_BILL]
+    assert refund and refund[0].weight >= 3
+    # an innocent "sent by mistake" stays weak
+    benign = detect_intents("sorry galti se tumhe wo photo bhej di")
+    assert sum(f.weight for f in benign) < 3

@@ -38,3 +38,8 @@ safe,bank,"Your OTP for login is 482910. Do not share it with anyone. - HDFC Ban
 safe,work,"Work from home today, will join the call at 11."
 safe,family,"Abhi ghar aa raha hoon, khana garam kar dena."
 safe,link,"Income tax return file karne ki last date 31 July hai, incometax.gov.in par check karo"
+scam,lookalike,"HDFC netbanking update karein: https://hdfcbnak.com/login"
+scam,lookalike,"Paytm cashback claim: https://paytrn.com/reward"
+scam,lookalike,"Flipkart Big Billion lucky winner, claim at flipkarrt.com/claim"
+safe,link,"Code review ke liye PR dekho https://github.com/org/repo/pull/12"
+safe,link,"Donate karna ho to https://www.wikipedia.org dekho"

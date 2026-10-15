@@ -1,0 +1,24 @@
+# Sandbox: headless Chromium that opens user-supplied links. Isolated network, non-root,
+# read-only filesystem (see docker-compose.yml). The locked playwright version must match the
+# image tag (requirements/sandbox.in).
+FROM mcr.microsoft.com/playwright/python:v1.63.0-noble@sha256:72bd171a9ffc2b4b59532aaa6210e21014d07093120dc25528870c0b840da1f0
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
+    HOME=/tmp
+
+WORKDIR /app
+# Hash-locked dependencies (incl. androguard + playwright), see `make lock`.
+COPY requirements/sandbox.txt ./requirements/sandbox.txt
+RUN pip install --retries 10 --timeout 60 --require-hashes --no-deps --ignore-installed \
+    -r requirements/sandbox.txt
+COPY pyproject.toml ./
+COPY src ./src
+RUN pip install --no-deps --no-build-isolation .
+
+USER pwuser
+EXPOSE 8100
+CMD ["uvicorn", "kavach.sandbox.service:app", "--host", "0.0.0.0", "--port", "8100"]

@@ -8,9 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from kavach.config import Settings, get_settings
 from kavach.db.session import make_engine, make_sessionmaker
+from kavach.detectors.url.analyse import DeepContext
 from kavach.llm.base import ExplanationProvider
 from kavach.logs import setup_logging
 from kavach.reputation.store import PgStore
+from kavach.sandbox.client import SandboxClient
 from kavach.whatsapp.client import DryRunMessenger, Messenger, WhatsAppClient
 
 
@@ -23,6 +25,7 @@ class Deps:
     store: PgStore
     messenger: Messenger
     explainer: ExplanationProvider | None = None
+    deep: DeepContext | None = None
 
     async def close(self) -> None:
         await self.http.aclose()
@@ -38,6 +41,7 @@ async def build_deps(settings: Settings | None = None) -> Deps:
     http = httpx.AsyncClient(timeout=settings.http_timeout_seconds, follow_redirects=False)
     engine = make_engine(settings.database_url)
     store = PgStore(make_sessionmaker(engine))
+    sandbox = SandboxClient(settings.sandbox_url, http, redis) if settings.sandbox_enabled else None
     return Deps(
         settings=settings,
         redis=redis,
@@ -47,4 +51,5 @@ async def build_deps(settings: Settings | None = None) -> Deps:
         messenger=(
             DryRunMessenger(redis) if settings.whatsapp_dry_run else WhatsAppClient(settings, http)
         ),
+        deep=DeepContext(settings=settings, http=http, sandbox=sandbox),
     )

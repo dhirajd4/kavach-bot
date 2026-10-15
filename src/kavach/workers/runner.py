@@ -37,7 +37,7 @@ class Runner:
         self.deps = deps
         self.redis: Redis = deps.redis
         self.checker = Checker(
-            deps.settings, deps.redis, deps.store, deps.messenger, deps.explainer
+            deps.settings, deps.redis, deps.store, deps.messenger, deps.explainer, deps.deep
         )
         self.consumer = f"{socket.gethostname()}-{os.getpid()}"
         self.sem = asyncio.Semaphore(CONCURRENCY)

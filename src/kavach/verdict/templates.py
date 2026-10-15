@@ -80,6 +80,131 @@ REASON: dict[Reason, dict[str, str]] = {
         "hinglish": "Link se app (APK) download hoga — Play Store ke bahar ke apps phone hack kar sakte hain",
         "en": "The link downloads an app (APK) — apps outside Play Store can take over your phone",
     },
+    Reason.WEBRISK_LISTED: {
+        "hi": "Google की ख़तरनाक वेबसाइटों की सूची में है: {e}",
+        "hinglish": "Google ki khatarnak websites ki list mein hai: {e}",
+        "en": "Listed by Google as dangerous: {e}",
+    },
+    Reason.NEW_DOMAIN: {
+        "hi": "यह वेबसाइट सिर्फ़ {e} दिन पहले बनी है — धोखे वाली साइटें अक्सर नई होती हैं",
+        "hinglish": "Yeh website sirf {e} din pehle bani hai — fraud sites aksar nayi hoti hain",
+        "en": "This website was created only {e} days ago — scam sites are usually new",
+    },
+    Reason.LOOKALIKE_DOMAIN: {
+        "hi": "नाम असली वेबसाइट जैसा दिखता है पर अलग है ({e})",
+        "hinglish": "Naam asli website jaisa dikhta hai par alag hai ({e})",
+        "en": "The name imitates a real website ({e})",
+    },
+    Reason.REDIRECT_CHAIN: {
+        "hi": "लिंक असल में यहाँ ले जाता है: {e}",
+        "hinglish": "Link asal mein yahan le jaata hai: {e}",
+        "en": "The link actually leads to: {e}",
+    },
+    Reason.URL_LEXICAL_RISK: {
+        "hi": "लिंक का पता अजीब है ({e})",
+        "hinglish": "Link ka pata ajeeb hai ({e})",
+        "en": "The link address looks odd ({e})",
+    },
+    Reason.PAGE_ASKS_CREDENTIALS: {
+        "hi": "वेबसाइट खोलने पर {e} माँगा जा रहा है",
+        "hinglish": "Website kholne par {e} maanga ja raha hai",
+        "en": "The website asks for your {e}",
+    },
+    Reason.PAGE_IMPERSONATES_BRAND: {
+        "hi": "वेबसाइट ख़ुद को {e} बताती है, पर यह {e} की असली वेबसाइट नहीं है",
+        "hinglish": "Website khud ko {e} batati hai, par yeh {e} ki asli website nahi hai",
+        "en": "The website pretends to be {e}, but it is not {e}'s real site",
+    },
+    Reason.PAGE_DOWNLOADS_APK: {
+        "hi": "वेबसाइट खुलते ही ऐप (APK) डाउनलोड करवाती है — इसे इंस्टॉल न करें",
+        "hinglish": "Website khulte hi app (APK) download karwati hai — ise install na karein",
+        "en": "The website pushes an app (APK) download — do not install it",
+    },
+    Reason.QR_UPI_PAYMENT: {
+        "hi": "फ़ोटो में UPI QR है — इसे स्कैन करने से आपके खाते से पैसे जाएँगे ({e})",
+        "hinglish": "Photo mein UPI QR hai — ise scan karne se aapke account se paise JAAYENGE ({e})",
+        "en": "The photo has a UPI QR — scanning it SENDS money from your account ({e})",
+    },
+    Reason.QR_RECEIVE_TRICK: {
+        "hi": '"QR स्कैन करके पैसे पाइए" — यह झूठ है। पैसे पाने के लिए कभी QR स्कैन या PIN नहीं डालना होता',
+        "hinglish": '"QR scan karke paise paaiye" — yeh jhooth hai. Paise PAANE ke liye kabhi QR scan ya PIN nahi daalna hota',
+        "en": '"Scan the QR to receive money" is a lie. You never scan a QR or enter a PIN to RECEIVE money',
+    },
+    Reason.APK_FILE: {
+        "hi": "यह एक ऐप फ़ाइल (APK) है — {e}। WhatsApp पर आए ऐप Play Store की जाँच से नहीं गुज़रते",
+        "hinglish": "Yeh ek app file (APK) hai — {e}. WhatsApp par aaye apps Play Store ki jaanch se nahi guzarte",
+        "en": "This is an app file (APK) — {e}. Apps sent on WhatsApp skip Play Store safety checks",
+    },
+    Reason.APK_UNREADABLE: {
+        "hi": "यह ऐप फ़ाइल खुल नहीं रही / टूटी या छुपाई गई है — इसे इंस्टॉल न करें",
+        "hinglish": "Yeh app file khul nahi rahi / tooti ya chhupayi gayi hai — ise install na karein",
+        "en": "This app file is damaged or disguised and can't be checked — don't install it",
+    },
+    Reason.APK_IMPERSONATES: {
+        "hi": "ऐप ख़ुद को बैंक/सरकारी सेवा बताता है ({e}) — बैंक और सरकार कभी WhatsApp पर ऐप नहीं भेजते",
+        "hinglish": "App khud ko bank/sarkari seva batata hai ({e}) — bank aur sarkar kabhi WhatsApp par app nahi bhejte",
+        "en": "The app poses as a bank/government service ({e}) — they never send apps on WhatsApp",
+    },
+    Reason.APK_KNOWN_LURE: {
+        "hi": '"{e}" — शादी कार्ड/फ़ोटो जैसे नाम वाले ऐप आम धोखा हैं',
+        "hinglish": '"{e}" — shaadi card/photo jaise naam wale apps aam fraud hain',
+        "en": '"{e}" — wedding-card/photo style app names are a common scam trick',
+    },
+    Reason.APK_READS_SMS: {
+        "hi": "यह ऐप आपके SMS पढ़ सकता है — यानी बैंक के OTP चुरा सकता है",
+        "hinglish": "Yeh app aapke SMS padh sakta hai — yaani bank ke OTP chura sakta hai",
+        "en": "It can read your SMS — meaning it can steal bank OTPs",
+    },
+    Reason.APK_ACCESSIBILITY: {
+        "hi": "यह ऐप Accessibility माँगता है — इससे वह आपकी स्क्रीन देख और फ़ोन चला सकता है",
+        "hinglish": "Yeh app Accessibility maangta hai — isse woh aapki screen dekh aur phone chala sakta hai",
+        "en": "It asks for Accessibility — letting it see your screen and control your phone",
+    },
+    Reason.APK_NOTIFICATION_ACCESS: {
+        "hi": "यह ऐप आपकी सारी नोटिफ़िकेशन (OTP समेत) पढ़ सकता है",
+        "hinglish": "Yeh app aapki saari notifications (OTP samet) padh sakta hai",
+        "en": "It can read all your notifications, including OTPs",
+    },
+    Reason.APK_DEVICE_ADMIN: {
+        "hi": "यह ऐप Device Admin बनना चाहता है — फिर इसे हटाना मुश्किल होता है",
+        "hinglish": "Yeh app Device Admin banna chahta hai — phir ise hatana mushkil hota hai",
+        "en": "It wants Device Admin rights — making it hard to remove",
+    },
+    Reason.APK_OVERLAY: {
+        "hi": "यह ऐप दूसरे ऐप के ऊपर नकली स्क्रीन दिखा सकता है (जैसे नकली बैंक लॉगिन)",
+        "hinglish": "Yeh app doosre apps ke upar nakli screen dikha sakta hai (jaise nakli bank login)",
+        "en": "It can draw fake screens over other apps (like a fake bank login)",
+    },
+    Reason.APK_SENDS_SMS: {
+        "hi": "यह ऐप आपके नाम से SMS भेज सकता है ({e})",
+        "hinglish": "Yeh app aapke naam se SMS bhej sakta hai ({e})",
+        "en": "It can send SMS from your number ({e})",
+    },
+    Reason.APK_CALL_CONTROL: {
+        "hi": "यह ऐप कॉल कर सकता है / कॉल लॉग पढ़ सकता है — कॉल फ़ॉरवर्डिंग धोखे में इस्तेमाल",
+        "hinglish": "Yeh app call kar sakta hai / call log padh sakta hai — call forwarding fraud mein use hota hai",
+        "en": "It can make calls / read call logs — used in call-forwarding fraud",
+    },
+    Reason.APK_INSTALLS_APPS: {
+        "hi": "यह ऐप चुपके से और ऐप इंस्टॉल करवा सकता है",
+        "hinglish": "Yeh app chupke se aur apps install karwa sakta hai",
+        "en": "It can install more apps",
+    },
+    Reason.APK_OTP_STEALER: {
+        "hi": "OTP पढ़ना + बाहर भेजना: यह बैंकिंग चोर ऐप का पैटर्न है",
+        "hinglish": "OTP padhna + bahar bhejna: yeh banking chor app ka pattern hai",
+        "en": "Reads OTPs and can send them out: the banking-trojan pattern",
+    },
+    Reason.APK_UNSIGNED: {
+        "hi": "ऐप पर डेवलपर का हस्ताक्षर नहीं है",
+        "hinglish": "App par developer ka signature nahi hai",
+        "en": "The app has no developer signature",
+    },
+    Reason.APK_DEBUG_SIGNED: {
+        "hi": "ऐप पर टेस्ट वाला (debug) हस्ताक्षर है — असली कंपनियाँ ऐसा नहीं करतीं",
+        "hinglish": "App par test wala (debug) signature hai — asli companies aisa nahi karti",
+        "en": "Signed with a test (debug) certificate — real companies don't ship that",
+    },
     Reason.DIGITAL_ARREST: {
         "hi": "'डिजिटल अरेस्ट' जैसा डर — पुलिस/CBI कभी वीडियो कॉल पर गिरफ्तार नहीं करती",
         "hinglish": "'Digital arrest' jaisa darr — Police/CBI kabhi video call par giraftaar nahi karti",
@@ -200,9 +325,21 @@ LANG_SET = {
 }
 
 UNSUPPORTED = {
-    "hi": "🙏 अभी हम टेक्स्ट मैसेज और लिंक जाँच सकते हैं। फ़ोटो और ऐप (APK) की जाँच जल्द आ रही है।",
-    "hinglish": "🙏 Abhi hum text message aur link check kar sakte hain. Photo aur app (APK) check jald aa raha hai.",
-    "en": "🙏 Right now we can check text messages and links. Photo and app (APK) checks are coming soon.",
+    "hi": "🙏 हम टेक्स्ट, लिंक, फ़ोटो और ऐप (APK) फ़ाइलें जाँच सकते हैं। यह फ़ाइल प्रकार अभी नहीं।",
+    "hinglish": "🙏 Hum text, link, photo aur app (APK) files check kar sakte hain. Yeh file type abhi nahi.",
+    "en": "🙏 We can check text, links, photos and app (APK) files. Not this file type yet.",
+}
+
+APK_ADVICE = {
+    "hi": "📱 इंस्टॉल न करें। अगर कर लिया है: इंटरनेट बंद करें, ऐप हटाएँ, बैंक को फ़ोन करें और 1930 पर शिकायत करें।",
+    "hinglish": "📱 Install na karein. Agar kar liya hai: internet band karein, app hatayein, bank ko call karein aur 1930 par shikayat karein.",
+    "en": "📱 Don't install it. If you already did: turn off internet, uninstall it, call your bank and report on 1930.",
+}
+
+IMAGE_UNREADABLE = {
+    "hi": "🙏 इस फ़ोटो में हमें कोई लिखावट, लिंक या QR कोड नहीं मिला। साफ़ फ़ोटो या स्क्रीनशॉट भेजें, या मैसेज का टेक्स्ट फ़ॉरवर्ड करें।",
+    "hinglish": "🙏 Is photo mein humein koi likhawat, link ya QR code nahi mila. Saaf photo ya screenshot bhejein, ya message ka text forward karein.",
+    "en": "🙏 We couldn't find any text, link or QR code in this photo. Send a clearer photo or screenshot, or forward the message text.",
 }
 
 RATE_LIMITED = {

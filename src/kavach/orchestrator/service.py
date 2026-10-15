@@ -21,7 +21,26 @@ from kavach.whatsapp.payloads import InboundKind, InboundMessage
 
 log = logging.getLogger(__name__)
 
-SUPPORTED_NOW = frozenset({InboundKind.TEXT, InboundKind.BUTTON})
+TEXT_KINDS = frozenset({InboundKind.TEXT, InboundKind.BUTTON})
+
+
+APK_MIME = "application/vnd.android.package-archive"
+APK_SUFFIXES = (".apk", ".apks", ".xapk", ".apkm")
+
+
+def check_kind(msg: InboundMessage) -> str | None:
+    """'text' | 'image' | 'apk' | None. Images sent "as document" count as images."""
+    if msg.kind in TEXT_KINDS:
+        return "text"
+    if msg.kind is InboundKind.IMAGE or (
+        msg.kind is InboundKind.DOCUMENT and msg.media_mime.startswith("image/")
+    ):
+        return "image"
+    if msg.kind is InboundKind.DOCUMENT and (
+        msg.media_mime == APK_MIME or msg.filename.lower().endswith(APK_SUFFIXES)
+    ):
+        return "apk"
+    return None
 
 
 @dataclass(slots=True)
@@ -48,14 +67,20 @@ class Orchestrator:
             return
 
         await self.messenger.mark_read(msg.message_id)
-        if msg.kind not in SUPPORTED_NOW:
+        kind = check_kind(msg)
+        if kind is None:
             body = UNSUPPORTED[lang]
             if user.is_new:
                 body = WELCOME[lang] + "\n\n" + body
             await self.messenger.send_text(msg.wa_id, body, reply_to=msg.message_id)
             return
 
-        input_hash = content_hash("text", normalise_text(msg.text))
+        if kind in ("image", "apk"):
+            # Meta's sha256 identifies the file: the same forwarded image hashes the same.
+            media_key = msg.media_sha256 or msg.media_id
+            input_hash = content_hash(kind, f"{media_key}|{normalise_text(msg.text)}")
+        else:
+            input_hash = content_hash("text", normalise_text(msg.text))
         hit = await cache.get(self.redis, input_hash, lang)
         if hit is not None:
             body = hit.body if not user.is_new else WELCOME[lang] + "\n\n━━━━━━━━━━\n\n" + hit.body
@@ -63,7 +88,7 @@ class Orchestrator:
             await self.store.save_check(
                 CheckRecord(
                     user_hash=uhash,
-                    input_type="text",
+                    input_type=kind,
                     input_hash=input_hash,
                     verdict=hit.verdict,
                     score=hit.score,
@@ -81,12 +106,13 @@ class Orchestrator:
         await queue.enqueue(
             self.redis,
             {
-                "kind": msg.kind.value,
+                "kind": kind,
                 "message_id": msg.message_id,
                 "wa_id": msg.wa_id,
                 "user_hash": uhash,
                 "text": msg.text,
                 "media_id": msg.media_id,
+                "filename": msg.filename[:120],
                 "language": lang,
                 "first_time": int(user.is_new),
                 "input_hash": input_hash,

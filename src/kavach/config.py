@@ -36,6 +36,25 @@ class Settings(BaseSettings):
     http_timeout_seconds: float = 8.0
     log_level: str = "INFO"
 
+    # URL depth (M2)
+    sandbox_url: str = "http://sandbox:8100"
+    sandbox_enabled: bool = True
+    rdap_base: str = "https://rdap.org"
+    webrisk_api_key: SecretStr = SecretStr("")
+    deep_check_budget_seconds: float = 15.0
+    max_deep_urls: int = 3
+    # Send a screenshot of the fake page as an image with the verdict as its caption
+    # (still ONE message). Only when the caption fits WhatsApp's 1024-char limit.
+    send_screenshots: bool = True
+
+    # Images (M3)
+    max_image_bytes: int = 5 * 1024 * 1024  # WhatsApp image limit
+    ocr_langs: str = "hin+eng"
+    ocr_timeout_seconds: float = 15.0
+
+    # APK files (M4): parsed statically in the sandbox, never installed or run
+    max_apk_bytes: int = 60 * 1024 * 1024
+
 
 @lru_cache
 def get_settings() -> Settings:

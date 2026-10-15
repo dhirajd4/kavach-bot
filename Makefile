@@ -1,11 +1,12 @@
-.PHONY: setup test lint fmt up down logs tunnel quicktunnel replay migrate psql eval playground
+.PHONY: setup test lint fmt up down logs tunnel quicktunnel replay migrate psql eval playground image-eval apk-eval lock audit
 
 VENV := .venv
 PY := $(VENV)/bin/python
 
-setup:            ## local venv for tests/linting
+setup:            ## local venv for tests/linting, installed from the hash-locked dev set
 	python3 -m venv $(VENV)
-	$(VENV)/bin/pip install -e '.[dev]'
+	$(VENV)/bin/pip install --require-hashes --no-deps -r requirements/dev.txt
+	$(VENV)/bin/pip install --no-deps --no-build-isolation -e .
 
 test:
 	$(VENV)/bin/pytest -q
@@ -49,3 +50,27 @@ eval:             ## offline eval (no Docker): eval/messages.csv → console + e
 
 playground:       ## chat with the local bot in your browser (needs `make up` + dry run)
 	open http://localhost:8000/playground
+
+image-eval:       ## labelled images → running bot (real OCR in Docker); needs `make up` + dry run
+	$(PY) -m kavach.tools.image_eval tests/fixtures/images
+
+apk-eval:         ## harmless generated APKs → running bot (sandboxed static analysis)
+	$(PY) scripts/make_apk_fixtures.py
+	$(PY) -m kavach.tools.image_eval tests/fixtures/apks
+
+# Supply chain: every package in the tree (sub-dependencies too) must be at least 14 days old
+# at lock time, and is pinned by SHA-256. Bump LOCK_CUTOFF deliberately, then `make lock audit`.
+LOCK_CUTOFF := 2026-10-01T23:59:59Z
+UV_LOCK := $(VENV)/bin/uv pip compile --universal --python-version 3.12 --generate-hashes \
+	--exclude-newer $(LOCK_CUTOFF) --quiet
+
+lock:             ## regenerate requirements/*.txt (hash-locked) from pyproject.toml
+	$(UV_LOCK) pyproject.toml requirements/build.in -o requirements/runtime.txt
+	$(UV_LOCK) pyproject.toml requirements/build.in requirements/sandbox.in --extra apk \
+		-o requirements/sandbox.txt
+	$(UV_LOCK) pyproject.toml requirements/build.in --extra apk --extra dev -o requirements/dev.txt
+
+audit:            ## known-vulnerability scan (OSV / PyPI advisories) of every locked package
+	$(VENV)/bin/pip-audit --require-hashes --disable-pip -r requirements/runtime.txt
+	$(VENV)/bin/pip-audit --require-hashes --disable-pip -r requirements/sandbox.txt
+	$(VENV)/bin/pip-audit --require-hashes --disable-pip -r requirements/dev.txt

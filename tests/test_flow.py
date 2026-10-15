@@ -139,10 +139,38 @@ async def test_rate_limit_notifies_once(settings, redis, store, messenger) -> No
     assert await redis.xlen(queue.STREAM) == settings.rate_limit_per_hour
 
 
-async def test_image_gets_coming_soon_reply(settings, redis, store, messenger) -> None:  # type: ignore[no-untyped-def]
+async def test_unsupported_document_gets_polite_reply(settings, redis, store, messenger) -> None:  # type: ignore[no-untyped-def]
     orch = Orchestrator(settings, redis, store, messenger)
-    await orch.handle(InboundMessage("wamid.i", "919800000001", InboundKind.IMAGE, media_id="M"))
+    pdf = InboundMessage(
+        "wamid.d",
+        "919800000001",
+        InboundKind.DOCUMENT,
+        media_id="M",
+        media_mime="application/pdf",
+        filename="notice.pdf",
+    )
+    await orch.handle(pdf)
     assert len(messenger.sent) == 1 and await redis.xlen(queue.STREAM) == 0
+
+
+async def test_image_and_image_document_are_enqueued(settings, redis, store, messenger) -> None:  # type: ignore[no-untyped-def]
+    orch = Orchestrator(settings, redis, store, messenger)
+    await orch.handle(
+        InboundMessage(
+            "wamid.i", "919800000001", InboundKind.IMAGE, media_id="M1", media_sha256="abc"
+        )
+    )
+    await orch.handle(
+        InboundMessage(
+            "wamid.j",
+            "919800000001",
+            InboundKind.DOCUMENT,
+            media_id="M2",
+            media_mime="image/png",
+            media_sha256="def",
+        )
+    )
+    assert messenger.sent == [] and await redis.xlen(queue.STREAM) == 2
 
 
 async def test_greeting_gets_welcome_not_verdict(settings, redis, store, messenger) -> None:  # type: ignore[no-untyped-def]
@@ -207,3 +235,15 @@ async def test_reputation_scam_upi(settings, redis, store, messenger) -> None:  
     await orch.handle(msg("Bhai is UPI par 500 bhej do fraud.king@ybl jaldi"))
     await drain(redis, checker)
     assert store.checks[-1].verdict == "scam"
+
+
+async def test_rule_change_invalidates_cached_replies(
+    settings, redis, store, messenger, monkeypatch
+) -> None:  # type: ignore[no-untyped-def]
+    from kavach.orchestrator import cache as cache_mod
+
+    reply = cache_mod.CachedReply("old", "no_risk_found", 0, [], [], "template")
+    await cache_mod.put(redis, "h", "en", reply, ttl=60)
+    assert await cache_mod.get(redis, "h", "en") is not None
+    monkeypatch.setattr(cache_mod, "rules_version", lambda: "new-rules")
+    assert await cache_mod.get(redis, "h", "en") is None

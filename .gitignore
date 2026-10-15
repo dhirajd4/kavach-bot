@@ -5,6 +5,7 @@
 
 # Python
 .venv/
+.venv.old/
 __pycache__/
 *.pyc
 *.egg-info/
@@ -23,3 +24,5 @@ data/local/
 .idea/
 .vscode/
 eval-report.html
+tests/fixtures/apks/
+*.apk

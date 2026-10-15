@@ -1,5 +1,7 @@
 name: kavach
 
+# Images are pinned by tag AND digest (tag for humans, digest so it can't silently change).
+
 x-app: &app
   build: .
   env_file: .env
@@ -10,7 +12,7 @@ x-app: &app
 
 services:
   postgres:
-    image: postgres:16.4-alpine
+    image: postgres:16.15-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
     environment:
       POSTGRES_USER: kavach
       POSTGRES_PASSWORD: kavach
@@ -25,7 +27,7 @@ services:
       retries: 20
 
   redis:
-    image: redis:7.4.2-alpine
+    image: redis:7.4.11-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redisdata:/data
@@ -54,13 +56,40 @@ services:
   worker:
     <<: *app
     command: ["python", "-m", "kavach.workers.runner"]
+    networks: [default, sandbox_net]  # the only service that can reach the sandbox
     depends_on:
       migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
+      sandbox: { condition: service_healthy }
+
+  # Opens user links in headless Chromium. Isolated: its network reaches the internet but
+  # not postgres/redis/api; non-root; read-only FS; no capabilities; capped CPU/memory.
+  sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile.sandbox
+    networks: [sandbox_net]
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m
+    shm_size: "512m"
+    mem_limit: 1536m
+    cpus: 1.5
+    pids_limit: 512
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      LOG_LEVEL: INFO
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8100/healthz',timeout=3)"]
+      interval: 5s
+      retries: 20
+    restart: unless-stopped
 
   # Stable public URL (needs CLOUDFLARE_TUNNEL_TOKEN):  docker compose --profile tunnel up
   tunnel:
-    image: cloudflare/cloudflared:2025.4.0
+    image: cloudflare/cloudflared:2026.9.3@sha256:072c067d25ccbe61d46e18f0d0723255f2bb5304f7317caa95b27031520ff92c
     profiles: ["tunnel"]
     command: ["tunnel", "--no-autoupdate", "run", "--token", "${CLOUDFLARE_TUNNEL_TOKEN}"]
     depends_on: [api]
@@ -69,10 +98,14 @@ services:
   # No account needed; random *.trycloudflare.com URL printed in logs, changes every restart:
   #   docker compose --profile quicktunnel up
   quicktunnel:
-    image: cloudflare/cloudflared:2025.4.0
+    image: cloudflare/cloudflared:2026.9.3@sha256:072c067d25ccbe61d46e18f0d0723255f2bb5304f7317caa95b27031520ff92c
     profiles: ["quicktunnel"]
     command: ["tunnel", "--no-autoupdate", "--url", "http://api:8000"]
     depends_on: [api]
+
+networks:
+  default: {}
+  sandbox_net: {}
 
 volumes:
   pgdata:

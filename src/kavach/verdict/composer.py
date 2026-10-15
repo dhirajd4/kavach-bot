@@ -27,13 +27,22 @@ async def explain(
     return await _template.explain(decision, language)
 
 
-def render(decision: Decision, explanation: Explanation, language: str, *, first_time: bool) -> str:
+def render(
+    decision: Decision,
+    explanation: Explanation,
+    language: str,
+    *,
+    first_time: bool,
+    extra_advice: str = "",
+) -> str:
     if decision.verdict is Verdict.NOTHING_TO_CHECK:
         return WELCOME[language]
     parts = [HEADLINE[decision.verdict][language]]
     if explanation.lines:
         parts.append("\n".join(f"• {line}" for line in explanation.lines))
     parts.append(ADVICE[decision.verdict][language])
+    if extra_advice:
+        parts.append(extra_advice)
     parts.append(FOOTER[language])
     body = "\n\n".join(parts)
     if first_time:

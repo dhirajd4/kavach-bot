@@ -27,7 +27,15 @@ class Decision:
 
 
 def decide(findings: list[Finding], *, had_content: bool, urls_checked: int) -> Decision:
-    risky = [f for f in findings if f.weight > 0]
+    # Each signal type counts once, at its strongest (TDS §6.2: weights capped per signal type),
+    # so three links with the same weakness don't triple the score.
+    strongest: dict[str, Finding] = {}
+    for f in findings:
+        if f.weight > 0:
+            cur = strongest.get(f.reason.value)
+            if cur is None or (f.decisive, f.weight) > (cur.decisive, cur.weight):
+                strongest[f.reason.value] = f
+    risky = list(strongest.values())
     score = round(sum(f.weight for f in risky), 2)
     top = tuple(
         sorted(risky, key=lambda f: (f.decisive, f.weight), reverse=True)[:MAX_REASONS_SHOWN]
